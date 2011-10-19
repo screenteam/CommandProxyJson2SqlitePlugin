@@ -5,6 +5,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,6 +25,9 @@ public class JSONTransformer implements ContentHandler {
 	private String dbPath;
 	private Connection conn;
 	private PreparedStatement stat;
+	
+	private static final String DATE_REGEX = "^([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})$";
+	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 	
 	public JSONTransformer(String dbPath) {
 		this.dbPath = dbPath;
@@ -127,7 +132,7 @@ public class JSONTransformer implements ContentHandler {
 		try {
 			int i = 1;
 			for (Object key: this.currTableFields) {
-				this.stat.setString(i, this.currObject.get(key).toString());
+				this.stat.setString(i, this.convert2sqlite(this.currObject.get(key).toString()));
 				i++;
 			}
 			this.stat.addBatch();
@@ -174,6 +179,29 @@ public class JSONTransformer implements ContentHandler {
 		catch (Exception ex) {
 			Logger.getLogger(JSONTransformer.class.getName()).log(Level.SEVERE, null, ex);
 		}
+	}
+	
+	public String convert2sqlite(String value) {
+		// return dates as timestamp (in seconds)
+		if (value.length() == 19 && value.matches(DATE_REGEX)) {
+			try {
+				Date date = DATE_FORMAT.parse(value);
+				long timestamp = date.getTime() / 1000;
+				return Long.toString(timestamp);
+			} 
+			catch (java.text.ParseException ex) {
+				// date could not be converted - return valus as it is
+			}			
+		}
+		else {
+			// replace return+newline by only newline character
+			if (value.indexOf("\r\n") != -1) {
+				value = value.replaceAll("\r\n", "\n");
+			}
+		}
+		
+		// return value unchanges
+		return value;
 	}
 	
 }
