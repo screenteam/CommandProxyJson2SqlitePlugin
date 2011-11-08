@@ -26,8 +26,10 @@ public class JSONTransformer implements ContentHandler {
 	private Connection conn;
 	private PreparedStatement stat;
 	
-	private static final String DATE_REGEX = "^([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})$";
-	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+	private static final String DATETIME_REGEX = "^([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})$";
+	private static final String DATE_REGEX = "^([0-9]{4})-([0-9]{2})-([0-9]{2})$";
+	private static final SimpleDateFormat DATETIME_FORMAT = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 	
 	public JSONTransformer(String dbPath) {
 		this.dbPath = dbPath;
@@ -183,7 +185,17 @@ public class JSONTransformer implements ContentHandler {
 	
 	public String convert2sqlite(String value) {
 		// return dates as timestamp (in seconds)
-		if (value.length() == 19 && value.matches(DATE_REGEX)) {
+		if (value.length() == 19 && value.matches(DATETIME_REGEX)) {
+			try {
+				Date date = DATETIME_FORMAT.parse(value);
+				long timestamp = date.getTime() / 1000;
+				return Long.toString(timestamp);
+			} 
+			catch (java.text.ParseException ex) {
+				// date could not be converted - return valus as it is
+			}			
+		}
+		else if (value.length() == 10 && value.matches(DATE_REGEX)) {
 			try {
 				Date date = DATE_FORMAT.parse(value);
 				long timestamp = date.getTime() / 1000;

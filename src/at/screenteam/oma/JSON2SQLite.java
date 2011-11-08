@@ -69,8 +69,8 @@ public class JSON2SQLite implements Command {
 	
 	public static void main(String[] args) {
 		Map<String, String> params = new HashMap<String, String>();
-		params.put("jsonFile", "json.json");
-		params.put("dbFile", "db.db");
+		params.put("jsonFile", "/Users/mrscreenteam/Library/Preferences/OMa/Local Store/OMa.db.json");
+		params.put("dbFile", "/Users/mrscreenteam/Library/Preferences/OMa/Local Store/OMa.db");
 		
 		JSON2SQLite plugin = new JSON2SQLite();
 		try {
@@ -82,7 +82,6 @@ public class JSON2SQLite implements Command {
 		} catch (JSONException ex) {
 			Logger.getLogger(JSON2SQLite.class.getName()).log(Level.SEVERE, null, ex);
 		}
-		
 	}
 	
 }
